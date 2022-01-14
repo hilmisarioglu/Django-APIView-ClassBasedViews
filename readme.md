@@ -60,3 +60,97 @@ pip freeze > requirements.txt
 py manage.py makemigrations
 py manage.py migrate
 ```
+go to app.admin.py
+
+```python
+from django.contrib import admin
+from .models import Kayit
+# Register your models here.
+
+admin.site.register(Kayit)
+
+go to terminal
+
+```bash
+pip install djangorestframework
+pip install django-extensions # needed for extra futures such as shell_plus
+pip install ipython # for visualization of shell screen
+```
+go to settings.py and add 'rest_framework' app and 'django_extensions' to installed apps
+
+## Serializers
+
+Serializers allow complex data such as querysets and model instances to be converted to native Python datatypes that can then be easily rendered into JSON, XML or other content types. Serializers also provide deserialization, allowing parsed data to be converted back into complex types, after first validating the incoming data.
+
+## Declaring Serializers with serializers.Serializer
+
+create serializers.py under app
+
+```python
+from rest_framework import serializers
+from .models import Kayit
+
+# Böyle de yapilir ama biz genelde daabase deki fieldlere referans yapmaya calisiyoruz. ModelSerializer kullaniyoruz
+
+class KayitSerializerWithSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+
+```
+
+## ModelSerializer
+
+go to serializers.py and make below amendments
+
+```python
+# Artik forms.py a gerek kalmadi serializers var
+from rest_framework import serializers
+from .models import Kayit
+
+class KayitSerializer(serializers.ModelSerializer):
+    class Meta:
+# Modelle baglantisini kurduk. Yukaridaki diger örnekte ise modelle bir baglantisi yok. O yüzden o yöntem uzun. 
+        model = Kayit
+# 3 farkli sekilde fields referans göserilebilir.  
+        fields = ["id", "first_name", "last_name", "email", "image"]
+        # fields = '__all__'
+
+# Bunun disindaki her seyi ver demek
+        # exclude = ['number']
+```
+go to main.urls.py
+
+```python
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('app/', include('app.urls')),
+]
+```
+
+go to app.urls.py
+
+```python
+from django.urls import path
+from .views import home
+
+urlpatterns = [
+    path('', home),
+]
+```
+from django.shortcuts import render, HttpResponse, 
+from .models import Kayit
+
+# Create your views here.
+
+def home(request):
+    return HttpResponse('<h1>API Page</h1>')
+
+# If you are using VSCode, Ctrl + Shift + P -> Type and select 'Python: Select Interpreter' and enter into your projects virtual environment. This is what worked for me.
+
+# Run in terminal
+# pip install django-rest-framework
+
+# API VIEWS
