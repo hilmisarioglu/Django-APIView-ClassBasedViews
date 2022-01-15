@@ -4,8 +4,9 @@ from .serializers import KayitSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status 
+from rest_framework.generics import GenericAPIView
 
-# Create your views here.
+################## APIView ####################
 
 def home(request):
     return HttpResponse('<h1>API Page</h1>')
@@ -49,3 +50,8 @@ class KayitDetailView(APIView):
         kayit = self.get_object(pk)
         kayit.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
+
+################ GenericAPIView ##################
+# Genelde generic view veya Concrete view kullanilir. Abstract bir yapiya döner ve bir sürü farkli islem yapilabilir, pagination gibi.
+
+1.14
