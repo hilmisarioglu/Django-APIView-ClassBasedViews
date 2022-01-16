@@ -4,7 +4,7 @@ from .serializers import KayitSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status 
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView , mixins , ListCreateAPIView , RetrieveUpdateDestroyAPIView
 
 ################## APIView ####################
 
@@ -39,7 +39,11 @@ class KayitDetailView(APIView):
         if serializer.is_valid():
             serializer.save()
             print(serializer.data)
-# Veriyi istedigim gibi degistirebilirim
+            # Veriyi istedigim gibi degistirebilirim Yöntem 1
+            # new_serializer_data = list(serializer.data)
+            # new_serializer_data.append({"a":"b"})
+            # return Response(new_serializer_data)
+            # Veriyi istedigim gibi degistirebilirim Yöntem 2
             serializer._data["success"] = "Kayit updated..."
             serializer._data["first_name"] = "Veli"
             print(serializer.data)
@@ -52,6 +56,43 @@ class KayitDetailView(APIView):
         return Response(status = status.HTTP_204_NO_CONTENT)
 
 ################ GenericAPIView ##################
-# Genelde generic view veya Concrete view kullanilir. Abstract bir yapiya döner ve bir sürü farkli islem yapilabilir, pagination gibi.
 
-1.14
+# Abstract bir yapiya döner ve bir sürü farkli islem yapilabilir, pagination , queryset i tanimlamamizi sagliyor , lookup_field i tanimlamamizi sagliyor veya filters. Bir de mixings ler var. GenericApiView , ApiViews den inherit ediyor ve mixingslerle kullaniliyor. Birden fazla class inherit eden seylere mixings deniyor. 
+
+class KayitListCreate(mixins.ListModelMixin,mixins.CreateModelMixin, GenericAPIView):
+    queryset= Kayit.objects.all()
+    serializer_class=KayitSerializer
+    
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class KayitRetrieveUpdateDelete(mixins.RetrieveModelMixin,mixins.UpdateModelMixin, mixins.DestroyModelMixin, GenericAPIView):
+    queryset = Kayit.objects.all()
+    serializer_class = KayitSerializer
+    
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+    
+################ Concrete View Classes ####################
+
+# En cok tercih edilen views. Override custom bi sey yazacaksak yukaridaki gibi classbasedviews kullanmak gerekiyor. Ama basit islemlerde bunlar tercih edilmeli. Veriyi istedigim gibi degistirmek istiyorsam ApiViews tercih edilebilir.
+#Concrete View Classes
+# https://www.django-rest-framework.org/api-guide/generic-views/#concrete-view-classes
+
+class KayitConceteListCreate(ListCreateAPIView):
+    queryset = Kayit.objects.all()
+    serializer_class = KayitSerializer
+
+class KayitConceteRetrieveUpdateDelete(RetrieveUpdateDestroyAPIView):
+    queryset = Kayit.objects.all()
+    serializer_class = KayitSerializer
+
