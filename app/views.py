@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status 
 from rest_framework.generics import GenericAPIView , mixins , ListCreateAPIView , RetrieveUpdateDestroyAPIView
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.decorators import action
 
 ################## APIView ####################
 
@@ -84,7 +86,7 @@ class KayitRetrieveUpdateDelete(mixins.RetrieveModelMixin,mixins.UpdateModelMixi
     
 ################ Concrete View Classes ####################
 
-# En cok tercih edilen views. Override custom bi sey yazacaksak yukaridaki gibi classbasedviews kullanmak gerekiyor. Ama basit islemlerde bunlar tercih edilmeli. Veriyi istedigim gibi degistirmek istiyorsam ApiViews tercih edilebilir.
+# En cok tercih edilen views bu bir de modelviewsets var. Override custom bi sey yazacaksak yukaridaki gibi classbasedviews kullanmak gerekiyor. Ama basit islemlerde bunlar tercih edilmeli. Veriyi istedigim gibi degistirmek istiyorsam ApiViews tercih edilebilir.
 #Concrete View Classes
 # https://www.django-rest-framework.org/api-guide/generic-views/#concrete-view-classes
 
@@ -96,3 +98,26 @@ class KayitConceteRetrieveUpdateDelete(RetrieveUpdateDestroyAPIView):
     queryset = Kayit.objects.all()
     serializer_class = KayitSerializer
 
+################ Viewsets ##################
+
+# KayitConceteListCreate ve KayitConceteRetrieveUpdateDelete i ayni view altina koymanin bir yöntemidir. Bunu kullanmak icin routers lari kullanmak gerekir.Bize default routerlar verir. Daha da isimizi kolaylastirir. 
+
+class KayitVSListRetrieve(mixins.ListModelMixin,mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = Kayit.objects.all()
+    serializer_class = KayitSerializer
+
+# Asagidaki KayitMVS ile get , post , put , delete tüm islemleri tek bir url altinda yapabiliyoruz vr cok basit. Tek yapmak gereken urls e router eklemek. Normalde put islemleri icin urls e pk de yazmak gerekiyordu fakat burda gerek kalmadi, urls e router.register('kayit-mvs', KayitMVS) ifadesini yazmamiz yeterli. kayit-mvs/1 dersek de 1 numarali id ye gider.Yukaridaki KayitVSListRetrieve icine mixins.CreateModelMixin,mixins.RetrieveModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,mixins.ListModelMixin,GenericViewSet yazmis olsaydim ayni sey olmus olurdu,
+class KayitMVS(ModelViewSet):    
+    queryset = Kayit.objects.all()
+    serializer_class = KayitSerializer
+    
+# Alttaki action su ise yarar. kayit-mvs diye endpoint olusturmustuk, bunu yanina / koyup routable urls yazmaya yarar. Eger sayilari ayri bir urlde dönmek istiyorsak bu kullanilir, yani arama cubuguna kayit-mvs/kayit_count yazmamiz yeterli. Mesela Hilmi isminde kac kisi var api olarak döner. Her bir methoda gidip path eklemeye gerek yok kisacasi.
+
+    @action(detail=False , methods=['get'])
+    def kayit_count(self, request):
+        kayit_count = Kayit.objects.filter(first_name='Hilmi').count()
+        count = {
+            "Hilmi ismi su kadar " : kayit_count
+        }
+        return Response(count)
+        
